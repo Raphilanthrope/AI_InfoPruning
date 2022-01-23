@@ -499,7 +499,7 @@ TPRs_temperature = 0.1
 
 Confs_temperature = 1.
 
-confusion_param = 1
+
 
 acc= 10
 
@@ -527,11 +527,6 @@ for epoch in range(num_epoch, 500):  # loop over the dataset multiple times
         
         outputs, thresh, max_pruned = Cifar10_without_pool(inputs)
         
-        #outputs = Cifar10_without_pool(inputs)
-        
-        #loss = criterion_confusion(Confusion2Outputs(conf_weights, outputs, labels, acc*Confs_temperature), labels)
-        #loss = criterion_confusion(outputs, labels) #+ confusion_param * loss_confusion
-        #regu = ConfusionBasedRegu(outputs, labels, confusion_mat)
         
         loss = criterion(outputs, labels) + alpha*((thresh - max_pruned)**2).mean() 
         loss.backward()
