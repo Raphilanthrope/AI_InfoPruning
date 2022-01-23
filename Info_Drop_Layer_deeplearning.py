@@ -17,7 +17,6 @@ class CIFAR10CNN_Baseline(torch.nn.Module): # name in paper: N
         
         self.softplus = softplus
         
-        # 3 input image channel, 32 output channels, 3x3 square convolution
         self.conv1 = torch.nn.Conv2d(3, 32, 3, padding=1) # 32
         self.act1 = torch.nn.ReLU()
         torch.nn.init.kaiming_normal_(self.conv1.weight, nonlinearity="relu")
@@ -94,7 +93,6 @@ class CIFAR10CNN_info_pruning(torch.nn.Module): # name in the paper: N_{p}
         
         self.softplus = softplus
         
-        # 3 input image channel, 32 output channels, 3x3 square convolution
         self.conv1 = torch.nn.Conv2d(3, 32, 3, padding=1) # 32
         self.act1 = torch.nn.ReLU()
         torch.nn.init.kaiming_normal_(self.conv1.weight, nonlinearity="relu")
@@ -162,7 +160,6 @@ class CIFAR10CNNplus(torch.nn.Module): # name in the paper: N_{+}
     def __init__(self):
         super(CIFAR10CNNplus, self).__init__()
         
-        # 3 input image channel, 32 output channels, 3x3 square convolution
         self.conv1 = torch.nn.Conv2d(3, 32, 3, padding=1) # 32
         self.act1 = torch.nn.ReLU()
         torch.nn.init.kaiming_normal_(self.conv1.weight, nonlinearity="relu")
@@ -215,7 +212,6 @@ class CIFAR10CNN_Baseline_Drop(torch.nn.Module): # name in paper: N_d
         
         self.softplus = softplus
         
-        # 3 input image channel, 32 output channels, 3x3 square convolution
         self.conv1 = torch.nn.Conv2d(3, 32, 3, padding=1) # 32
         self.act1 = torch.nn.ReLU()
         torch.nn.init.kaiming_normal_(self.conv1.weight, nonlinearity="relu")
@@ -297,7 +293,6 @@ class CIFAR10CNN_info_pruning_drop(torch.nn.Module): # name in the paper: N_{d+p
         
         self.softplus = softplus
         
-        # 3 input image channel, 32 output channels, 3x3 square convolution
         self.conv1 = torch.nn.Conv2d(3, 32, 3, padding=1) # 32
         self.act1 = torch.nn.ReLU()
         torch.nn.init.kaiming_normal_(self.conv1.weight, nonlinearity="relu")
@@ -375,7 +370,6 @@ class CIFAR10CNN_2_info_pruning(torch.nn.Module): # name in the paper: N_{2p}
         
         self.flat = torch.nn.Flatten(1)
         
-        # 3 input image channel, 32 output channels, 3x3 square convolution
         self.conv1 = torch.nn.Conv2d(3, 32, 3, padding=1) # 32
         self.act1 = torch.nn.ReLU()
         torch.nn.init.kaiming_normal_(self.conv1.weight, nonlinearity="relu")
@@ -472,17 +466,7 @@ class CIFAR10CNN_2_info_pruning(torch.nn.Module): # name in the paper: N_{2p}
     
 
 
-    
-    
-    
-
-
-c=0
-for param in Cifar10_without_pool.parameters():
-    c+=param.numel()
-
-    
-# np.mean([7690, 7540, 7620, 7810, 7640, 7850, 7780, 7520, 7710, 7920])/ 100.
+import tensorflow as tf
         
 (x_train, y_train), (x_test, y_test) = tf.keras.datasets.cifar10.load_data()
 
@@ -498,136 +482,67 @@ num_val = 5000
 val = train_torch[-num_val:]
 lab_val = lab[-num_val:].squeeze()
 
-b_s = 64
 
-trainloader = torch.utils.data.DataLoader(list(zip(train_torch[:-num_val], lab[:-num_val])), batch_size=b_s,  shuffle=True)
+trainloader = torch.utils.data.DataLoader(list(zip(train_torch[:-num_val], lab[:-num_val])), batch_size=64,  shuffle=True)
 
-top_batch_size = 1
-trainloader_bis = torch.utils.data.DataLoader(list(zip(train_torch[:-num_val], lab[:-num_val])), batch_size=top_batch_size,  shuffle=True)
-
-
-Cifar10_without_pool = CIFAR10CNN_info_pruning_drop() #CIFAR10CNNplus() #l CIFAR10CNN_info_pruning() # SmallNet() # CIFAR10CNN_drop() # CIFAR10CNN()  #  SmallNet() #
-#torch.save(Cifar10_without_pool.state_dict(), "/home/larsen/Documents/DeepLearningProperLossConv_InfoPruning01_542985_drop/CIFAR10_Model_withoutpool_epoch_0.pt")
-
-
-num_epoch = 400
-if(num_epoch>0):
-    Cifar10_without_pool.load_state_dict(torch.load( "/home/larsen/Documents/DeepLearningProperLossConv_InfoPruning01_542985_drop/CIFAR10_Model_withoutpool_epoch_"+str(num_epoch)+".pt"))
-
-
+model = CIFAR10CNN_Baseline()
+# torch.save(model.state_dict(), "")
+# model.load_state_dict(torch.load(""))
+print(sum(p.numel() for p in model.parameters()))
 
 criterion = torch.nn.CrossEntropyLoss()
-optimizer = optim.SGD(Cifar10_without_pool.parameters(), lr=0.001, momentum=0.9) # optim.Adam(Cifar10_without_pool.parameters()) #optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
-#optimizer_bis = optim.Adam(Cifar10_without_pool.parameters(),  lr=0.0001) #optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
+optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9) 
 
 total=0
 success=0
-top_batch=10
-
-#import time
-
-confusion_mat = np.zeros((10,10))
-contingency_tab =  np.zeros((10,10))
-conf_weights = np.ones((10,10))
-
 update = 100
-
-#TPRs = np.ones(10)
-
-TPRs_temperature = 0.1
-
-Confs_temperature = 1.
-
-
-
-acc= 10
 
 alpha = 0.1
 
-Cifar10_without_pool.train()
+model.train()
 
-for epoch in range(num_epoch, 500):  # loop over the dataset multiple times
+for epoch in range(500):  
     
     running_loss = 0.0
     running_confusion = 0.0
     for i, data in enumerate(trainloader, 0):
-        # get the inputs; data is a list of [inputs, labels]
+
         inputs, labels = data
         
         labels = labels.squeeze()
 
-        # zero the parameter gradients
         optimizer.zero_grad()
 
-        # forward + backward + optimize
-        
-        #criterion_confusion = torch.nn.CrossEntropyLoss(weight = torch.nn.functional.softmax((1-torch.tensor(TPRs, dtype=torch.float))/TPRs_temperature, dim=0))
-        
-        
-        outputs, thresh, max_pruned = Cifar10_without_pool(inputs)
-        
-        
-        loss = criterion(outputs, labels) + alpha*((thresh - max_pruned)**2).mean() 
+        # outputs, thresh, max_pruned = model(inputs) # uncomment iff the model has an IPM
+        # outputs, info_reg = model(inputs) # uncomment iff the model has an IPM with two nets
+	# outputs = model(inputs)  # uncomment iff the model does not have an IPM
+
+        # loss = criterion(outputs, labels) + alpha*((thresh - max_pruned)**2).mean()  # uncomment iff the model has an IPM with one Net 
+	# loss = criterion(outputs, labels) + alpha*info_reg  # uncomment iff the model has an IPM with two nets
+	# loss = criterion(outputs, labels)  # uncomment iff the model does not have an IPM
+
         loss.backward()
-        optimizer.step()
-        
-        """with torch.no_grad():
-            for param in Cifar10_without_pool.parameters():
-                param.clamp_(-0.1, 0.1) #""" 
-                
-        """with torch.no_grad():
-            for w in Cifar10_without_pool.parameters():
-                norm = w.norm(2, dim=0, keepdim=True)#.clamp(min= 1/2.)
-                desired = torch.clamp(norm, max=1.)
-                w = (desired / norm) * w"""
+        optimizer.step()        
         
         _,predicted = torch.max(outputs.data, 1)
         total += labels.size(0)
         success += (predicted==labels.data).sum()
 
-        # print statistics
         running_loss += loss.item()
-        #running_confusion += loss_confusion.item()
-        time.sleep(0.001)
-        #cont_tab = ComputeContingency1rst2ndmax(outputs) # ComputeConfusionMatrix(outputs, labels)
-        conf_mat = ComputeConfusionMatrix(outputs, labels)
-        #contingency_tab = contingency_tab + cont_tab
-        confusion_mat = confusion_mat + conf_mat# """
-        if(i%update==update-1):    # print every 2000 mini-batches
+        
+        if(i%update==update-1):    
             print('[%d, %5d] loss: %.3f' %
                       (epoch + 1, i + 1, running_loss / update))
-            #print('confusion: '+str(running_confusion / update))
             running_loss = 0.0
-            #running_confusion = 0.0
+            
             acc = (100.0*success/total).item()
             print("acc: "+str(acc))
-            TPRs, conf_weights = GetAdaptiveWeights(confusion_mat)
-            #TPRs, _ = GetAdaptiveWeights(confusion_mat)
-            TPR_mean = np.mean(TPRs)
-            best_TPR = np.max(TPRs)
-            print("TPRs: "+str(TPRs)+"\n")
-            """if(acc>20 and (best_TPR - TPR_mean)/float(TPR_mean)>0.2):   
-                www = torch.nn.functional.softmax(torch.tensor(1.- np.array(TPRs))/TPRs_temperature, dim=0)
-                adaptive_criterion = torch.nn.CrossEntropyLoss(weight=www)
-                optimizer.zero_grad() 
-                for ki in range(top_batch*10):
-                    data_2 = GetPoint(iter(trainloader_bis), ki%10)
-                    conf_w = 10*torch.nn.functional.softmax(torch.tensor([conf_weights[ki%10]])/Confs_temperature, dim=1)
-                    outputs = torch.mul(Cifar10_without_pool(data_2),  conf_w)
-                    loss = adaptive_criterion(outputs, torch.tensor([ki%10]))
-                    loss.backward()
-                    time.sleep(0.1)
-                optimizer.step()"""
+            
             total = 0
             success = 0
-            confusion_mat = b_s*confusion_mat/np.max(confusion_mat) # np.zeros((10,10))
-            #contingency_tab =  np.zeros((10,10))
-            time.sleep(0.01)
-        else:
-            TPRs, conf_weights = GetAdaptiveWeights(confusion_mat)
+            
 
-
-    torch.save(Cifar10_without_pool.state_dict(), "/home/larsen/Documents/DeepLearningProperLossConv_InfoPruning01_542985_drop/CIFAR10_Model_withoutpool_epoch_"+str(epoch+1)+".pt")
+    # torch.save(model.state_dict(), "..."+str(epoch+1)+".pt")
     
     
     
