@@ -1,2 +1,2 @@
 # AI_InfoPruning
-"Information Pruning" paper's code
+Code from "Information Pruning: a Regularization Method Based on a Simple Interpretability Property of Neural Networks"
