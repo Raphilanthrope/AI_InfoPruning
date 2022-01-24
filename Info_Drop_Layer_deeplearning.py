@@ -10,7 +10,7 @@ Created on Wed Jun 16 09:41:14 2021
 
 import torch
 
-class CIFAR10CNN_Baseline(torch.nn.Module): # name in paper: N
+class CIFAR10CNN_Baseline(torch.nn.Module): # name in the paper: N
     
     def __init__(self, softplus=1):
         super(CIFAR10CNN_Baseline, self).__init__()
@@ -205,7 +205,7 @@ class CIFAR10CNNplus(torch.nn.Module): # name in the paper: N_{+}
         return x_1
         
 
-class CIFAR10CNN_Baseline_Drop(torch.nn.Module): # name in paper: N_d
+class CIFAR10CNN_Baseline_Drop(torch.nn.Module): # name in the paper: N_d
     
     def __init__(self, softplus=1):
         super(CIFAR10CNN_Baseline_Drop, self).__init__()
